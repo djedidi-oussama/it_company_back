@@ -32,10 +32,13 @@ cloudinary.config({
 // CORS Middleware
 app.use(
   cors({
-    origin: ["http://localhost:3000"],
+    origin: ["https://it-company-front.vercel.app/"],
     credentials: true,
   })
 );
+app.get("/", (req, res) => {
+  res.send("Hello World!");
+});
 
 // Routes
 app.use("/api/projects", projectRoutes);
