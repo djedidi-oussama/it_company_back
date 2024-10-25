@@ -12,11 +12,12 @@ const sendToken = (user, statusCode, res) => {
   const options = {
     expires: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000), // 90 days
     httpOnly: true,
-    sameSite: "lax", 
-    secure: process.env.NODE_ENV === "production", // Cookie only over HTTPS in production
+    sameSite: "none",
+    secure: true,
   };
 
-  res.status(statusCode)
+  res
+    .status(statusCode)
     .cookie("token", token, options) // Set the cookie with the token
     .json({
       success: true,
@@ -102,8 +103,8 @@ const logout = catchAsyncErrors(async (req, res, next) => {
     res.cookie("token", null, {
       expires: new Date(Date.now()),
       httpOnly: true,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
+      sameSite: "none",
+      secure: true,
     });
     res.status(201).json({
       success: true,
