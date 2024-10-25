@@ -17,7 +17,14 @@ dotenv.config();
 connectDB();
 
 const app = express();
-
+app.use(bodyParser.json({ limit: "50mb" }));
+// CORS Middleware
+app.use(
+  cors({
+    origin: ["https://it-company-front.vercel.app/"],
+    credentials: true,
+  })
+);
 // Middleware
 app.use(cookieParser()); // for parsing cookies
 app.use(express.json({ limit: "50mb" })); // Increase the limit for JSON payload
@@ -29,13 +36,6 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// CORS Middleware
-app.use(
-  cors({
-    origin: ["https://it-company-front.vercel.app/"],
-    credentials: true,
-  })
-);
 app.get("/", (req, res) => {
   res.send("Hello World!");
 });
