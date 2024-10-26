@@ -19,12 +19,17 @@ const getAllBlogPosts = async (req, res) => {
 
 // Create a new blog post
 const createBlogPost = catchAsyncErrors(async (req, res, next) => {
-  const { title, description,  content, image , tags } = req.body; // Assuming you get title, content, and image from the request body
+  const { title, description,  content, image , tags , pdfUrl } = req.body; // Assuming you get title, content, and image from the request body
   try {
     // Upload the image to Cloudinary
     const cloudinaryResult = await cloudinary.uploader.upload(image, {
       folder: 'blog_posts', // Specify the folder in Cloudinary
     });
+
+    const cloudinaryPdfResult = await cloudinary.uploader.upload(pdfUrl, {
+      folder: 'blog_posts',
+      resource_type: 'auto',
+    })
 
     // Create a new blog post with the Cloudinary image URL
     const blogPost = new BlogPost({
@@ -32,7 +37,8 @@ const createBlogPost = catchAsyncErrors(async (req, res, next) => {
       description,
       content,
       image: cloudinaryResult.secure_url , // Store the Cloudinary URL in your blog post 
-      tags
+      tags ,
+      pdfUrl :  "https://res-console.cloudinary.com/dgncqrtc5/media_explorer_thumbnails/" + cloudinaryPdfResult.asset_id + "/download"
     });
 
     const savedBlogPost = await blogPost.save();
@@ -45,7 +51,7 @@ const createBlogPost = catchAsyncErrors(async (req, res, next) => {
 // Update a blog post by ID
 const updateBlogPost = catchAsyncErrors(async (req, res, next) => {
   const { id } = req.params;
-  const { title, description,  content, image , tags } = req.body;
+  const { title, description,  content, image , tags , pdfUrl } = req.body;
   try {
     const blog = await BlogPost.findById(req.params.id);
     if (!blog) return res.status(404).json({ message: 'Blog not found' });
@@ -54,15 +60,25 @@ const updateBlogPost = catchAsyncErrors(async (req, res, next) => {
     if (image) {
       const mainImageResult = await cloudinary.uploader.upload(image, {
         folder: 'blog_posts',
+
       });
       blog.image = mainImageResult.secure_url; // Update the main image URL
     } 
+    if (pdfUrl) {
+      const pdfResult = await cloudinary.uploader.upload(pdfUrl, {
+        folder: 'blog_posts',
+        resource_type: 'auto',
+      })
+      blog.pdfUrl = "https://res-console.cloudinary.com/dgncqrtc5/media_explorer_thumbnails/" + pdfResult.asset_id + "/download"
+
+    }
 
 
     blog.title = title || blog.title;
     blog.description = description || blog.description;
     blog.content = content || blog.content;
     blog.tags = tags || blog.tags;
+    
 
 
     const updatesBlog = await blog.save();
