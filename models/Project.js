@@ -1,30 +1,32 @@
-// models/Project.js
+// Project model schema definition for MongoDB using Mongoose
 const mongoose = require('mongoose');
 
+// Define the schema for a project
 const projectSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: true,
+    required: true, // Project name is required
   },
   category: {
     type: String,
-    required: true,
+    required: true, // Category of the project is required
   },
   description: {
     type: String,
-    required: true,
+    required: true, // Short description is required
   },
   content: {
     type: String,
-    required: true,
+    required: true, // Detailed content or description of the project is required
   },
   mainImage: {
     type: String,
-    required: true,
+    required: true, // URL of the main image is required
   },
   images: {
-    type: [String],  // Array of strings for multiple image URLs
+    type: [String],  // Array of image URLs for additional project images
   },
-}, { timestamps: true });
+}, { timestamps: true }); // Enable automatic timestamps for createdAt and updatedAt
 
+// Export the Project model based on the schema
 module.exports = mongoose.model('Project', projectSchema);

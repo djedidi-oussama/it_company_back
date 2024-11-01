@@ -2,17 +2,17 @@ const catchAsyncErrors = require('../middlewares/catchAsyncErrors');
 const Project = require('../models/Project');
 const cloudinary = require('cloudinary').v2;
 
-
-
 // Get all projects
 const getProjects = async (req, res) => {
   try {
+    // Retrieve all projects from the database
     const projects = await Project.find();
     res.status(200).json({
       success: true,
       projects,
     });
   } catch (error) {
+    // Handle server error
     res.status(500).json({ message: 'Server Error' });
   }
 };
@@ -20,10 +20,12 @@ const getProjects = async (req, res) => {
 // Get a single project by ID
 const getProjectById = async (req, res) => {
   try {
+    // Retrieve a single project by its ID
     const project = await Project.findById(req.params.id);
     if (!project) return res.status(404).json({ message: 'Project not found' });
     res.status(200).json(project);
   } catch (error) {
+    // Handle server error
     res.status(500).json({ message: 'Server Error' });
   }
 };
@@ -31,34 +33,35 @@ const getProjectById = async (req, res) => {
 // Create a new project
 const createProject = catchAsyncErrors(async (req, res, next) => {
   const { name, category, description, content, mainImage, images } = req.body;
-  
- 
-  try { 
+
+  try {
     // Upload the main image to Cloudinary
     const mainImageResult = await cloudinary.uploader.upload(mainImage, {
-      folder: 'projects', // Specify the folder in Cloudinary
+      folder: 'projects', // Specify folder in Cloudinary
     });
 
-    // Upload other images to Cloudinary
-    const imageUploadPromises = images.map(image => 
+    // Upload additional images to Cloudinary
+    const imageUploadPromises = images.map(image =>
       cloudinary.uploader.upload(image, { folder: 'projects' })
     );
 
     const imagesResults = await Promise.all(imageUploadPromises);
     const imageUrls = imagesResults.map(result => result.secure_url);
 
+    // Create and save the new project with Cloudinary URLs
     const newProject = new Project({
       name,
       category,
       description,
       content,
-      mainImage: mainImageResult.secure_url, // Save the Cloudinary URL
-      images: imageUrls // Save the array of Cloudinary URLs
+      mainImage: mainImageResult.secure_url, // Main image Cloudinary URL
+      images: imageUrls // Array of additional image URLs
     });
 
     const savedProject = await newProject.save();
     res.status(201).json(savedProject);
   } catch (error) {
+    // Handle server error
     res.status(500).json({ message: 'Server Error' });
   }
 });
@@ -68,6 +71,7 @@ const updateProject = catchAsyncErrors(async (req, res, next) => {
   const { name, category, description, content, mainImage, images } = req.body;
 
   try {
+    // Find the project by ID
     const project = await Project.findById(req.params.id);
     if (!project) return res.status(404).json({ message: 'Project not found' });
 
@@ -76,10 +80,10 @@ const updateProject = catchAsyncErrors(async (req, res, next) => {
       const mainImageResult = await cloudinary.uploader.upload(mainImage, {
         folder: 'projects',
       });
-      project.mainImage = mainImageResult.secure_url; // Update the main image URL
+      project.mainImage = mainImageResult.secure_url; // Update main image URL
     }
 
-    // Update images if provided
+    // Update additional images if provided
     if (images && images.length > 0) {
       const imageUploadPromises = images.map(image =>
         cloudinary.uploader.upload(image, { folder: 'projects' })
@@ -87,9 +91,10 @@ const updateProject = catchAsyncErrors(async (req, res, next) => {
 
       const imagesResults = await Promise.all(imageUploadPromises);
       const imageUrls = imagesResults.map(result => result.secure_url);
-      project.images = imageUrls; // Update the array of image URLs
+      project.images = imageUrls; // Update array of image URLs
     }
 
+    // Update project details
     project.name = name || project.name;
     project.category = category || project.category;
     project.description = description || project.description;
@@ -98,6 +103,7 @@ const updateProject = catchAsyncErrors(async (req, res, next) => {
     const updatedProject = await project.save();
     res.status(200).json(updatedProject);
   } catch (error) {
+    // Handle server error
     res.status(500).json({ message: 'Server Error' });
   }
 });
@@ -105,12 +111,14 @@ const updateProject = catchAsyncErrors(async (req, res, next) => {
 // Delete a project
 const deleteProject = catchAsyncErrors(async (req, res, next) => {
   try {
-    const deleted= await Project.findByIdAndDelete(req.params.id);
+    // Delete a project by ID
+    const deleted = await Project.findByIdAndDelete(req.params.id);
     if (!deleted) {
       return res.status(404).json({ message: "Project not found" });
     }
     res.json(deleted);
   } catch (error) {
+    // Handle server error
     res.status(500).json({ message: error.message });
   }
 });
